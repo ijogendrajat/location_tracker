@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String latlon = "nothing";
   List<List<dynamic>> data = [];
+  late Position position;
   // [01] permission ---------------------------------------------------
   late LocationPermission permission;
   void requestPermission() async {
