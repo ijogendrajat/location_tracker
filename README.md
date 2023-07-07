@@ -13,9 +13,15 @@ A Flutter project that allow you track user location for every second even app i
 - [04] show list of data by every second
 
 ## Screenshots
-![Screenshot](assets/SS01.png)
+<p float="left">
+  <img src="assets/SS01.png" width="33%" />
+  <img src="assets/SS02.png" width="33%" />
+  <img src="assets/SS03.png" width="33%" />
+</p>
+
+<!-- ![Screenshot](assets/SS01.png)
 ![Screenshot](assets/SS02.png)
-![Screenshot](assets/SS03.png)
+![Screenshot](assets/SS03.png) -->
 
 
 ## Dependencies
@@ -24,6 +30,8 @@ A Flutter project that allow you track user location for every second even app i
 ### [03] : [shared_preferences: ^2.2.0]()
 ### [04] : [Flutter Basic]()
 
+## Download APK
+-[SDK >= 33](assets/apk)
 
 ## About
 

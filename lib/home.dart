@@ -1,8 +1,10 @@
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert';
 
-import 'custom_fn.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart';
+import 'package:location_tracker/error_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,100 +15,138 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String latlon = "nothing";
   List<List<dynamic>> data = [];
   late Position position;
   // [01] permission ---------------------------------------------------
   late LocationPermission permission;
   void requestPermission() async {
     permission = await Geolocator.requestPermission();
+    String message = "";
     if (permission == LocationPermission.denied) {
-      uzg19SnackBar(context, "Permission Needed 🚨");
-      setState(() {
-        requestPermission();
-      });
+      message = "Permission Needed 🚨";
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ErrorScreen(
+                  abc: message,
+                )),
+      );
     } else if (permission == LocationPermission.deniedForever) {
-      uzg19SnackBar(context, "⚠️ Bye Bye / System Settings");
-      setState(() {
-        requestPermission();
-      });
+      message =
+          "⚠️ need your location permission to run this app open setting and give location permission to this app in system settings";
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ErrorScreen(
+                  abc: message,
+                )),
+      );
     } else {
-      uzg19SnackBar(context, "Welcome 🤗");
+      message = "Welcome 🤗";
     }
+    // ignore: use_build_context_synchronously
+    //uzg19SnackBar(context, message);
   }
 
-  // [01] permission ---------------------------------------------------
-  void getCurrentLocation() async {
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.best,
-      forceAndroidLocationManager: true,
-      //timeLimit: Duration(seconds: 1),
-    );
-    // var _locationText =
-    //     'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
-    // print(_locationText);
-    // uzg19SnackBar(context, _locationText);
-    List<double> newLocation = [position.latitude, position.longitude];
-    print(newLocation);
-    data.add(newLocation);
-    setState(() {});
+// [02] Current location ---------------------------------------------------
+  // void getCurrentLocation() async {
+  //   Position position = await Geolocator.getCurrentPosition(
+  //     desiredAccuracy: LocationAccuracy.best,
+  //     forceAndroidLocationManager: true,
+  //     // timeLimit: Duration(seconds: 1),
+  //   );
+  //   List<double> newLocation = [position.latitude, position.longitude];
+  //   data.add(newLocation);
+  //   setState(() {});
+  // }
+
+  // [03] Save Data ---------------------------------------------------
+  late StreamSubscription<Position> positionStreamSubscription;
+  startBtn() {
+    positionStreamSubscription =
+        Geolocator.getPositionStream().listen((Position position) {
+      setState(() {
+        List<double> newLocation = [position.latitude, position.longitude];
+        data.add(newLocation);
+      });
+    });
   }
 
-  bool startRecording = false;
-  dataWriter() {
-    while (startRecording) {}
+  stopBtn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String encodedData = json.encode(data);
+    await prefs.setString("dataKey", encodedData);
+    positionStreamSubscription.cancel();
   }
+
+  // [04] Sharedpref
 
   @override
   void initState() {
     requestPermission();
-    determinePosition();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text("geolocation"),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.green,
+        centerTitle: true,
+        title: const Text(
+          "UZG19-Location",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        body: Center(
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  //requestPermission();
-                  getCurrentLocation();
-                },
-                child: const Text("start"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    onPressed: startBtn,
+                    child: const Text(
+                      "start",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  ElevatedButton(
+                      onPressed: stopBtn,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text(
+                        "end",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      )),
+                ],
               ),
-              ElevatedButton(
-                  onPressed: () async {
-                    // determinePosition();
-                    if (await Permission.location.isDenied) {
-                      // The user opted to never again see the permission request dialog for this
-                      // app. The only way to change the permission's status now is to let the
-                      // user manually enable it in the system settings.
-                      openAppSettings();
-                    }
-                    if (await Permission.location.isGranted) {
-                      // Either the permission was already granted before or the user just granted it.
-                    }
-                    // You can request multiple permissions at once.
-                    Map<Permission, PermissionStatus> statuses = await [
-                      Permission.location,
-                      // Permission.storage,
-                    ].request();
-                    print(statuses[Permission.location]);
-                  },
-                  child: Text("end")),
-              Wrap(children: [Text(data.toString())]),
+              const SizedBox(
+                height: 30,
+              ),
+              SingleChildScrollView(
+                  child: Wrap(children: [Text(data.toString())])),
             ],
           ),
         ),
       ),
+      floatingActionButton: IconButton(
+          onPressed: () {
+            showCustomPopup(context);
+          },
+          icon: const Icon(
+            Icons.history,
+            color: Colors.green,
+            size: 50,
+          )),
     );
   }
 }
