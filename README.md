@@ -12,6 +12,12 @@ A Flutter project that allow you track user location for every second even app i
 - [03] save data
 - [04] show list of data by every second
 
+## Screenshots
+![Screenshot](assets/SS01.png)
+![Screenshot](assets/SS02.png)
+![Screenshot](assets/SS03.png)
+
+
 ## Dependencies
 ### [01] : [permission_handler: ^10.4.1]()
 ### [02] : [geolocator: ^9.0.2]()
