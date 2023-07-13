@@ -66,7 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
     positionStreamSubscription =
         Geolocator.getPositionStream().listen((Position position) {
       setState(() {
-        List<double> newLocation = [position.latitude, position.longitude];
+        List<dynamic> newLocation = [
+          position.latitude,
+          position.longitude,
+          DateTime.now().toString()
+        ];
         data.add(newLocation);
       });
     });

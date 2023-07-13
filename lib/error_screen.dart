@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final Uri _url = Uri.parse('https://ijogendrajat.github.io/location_tracker/');
@@ -51,6 +52,14 @@ class _ErrorScreenState extends State<ErrorScreen> {
                       color: Colors.red),
                 ),
               ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    openAppSettings();
+                  },
+                  child: Text("Open Settings ⚙ "),
+                ),
+              )
             ],
           ),
         ),
